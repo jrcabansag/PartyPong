@@ -6,9 +6,7 @@
 	<title>Song Pong</title> 
 	<style> 
 		body { 
-		    margin: 0;
-		    overflow: hidden;
-		    color: white;
+			margin:0;
 		}
 		input {
 		    position: absolute;
@@ -23,7 +21,18 @@
 		    transform: translate(-50% -50%);
 		    display: none;
 		}
-		.loader.loading  { display: block; }
+		.loader.loading  {
+			display: block; 
+		}
+		#bassText{
+			position: absolute;
+		    top: 115px;
+		    left: 15px;
+		}
+		#canvasDiv{
+			width: 1200px;
+			height: 800px;
+		}
 	</style> 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.5/p5.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.5/addons/p5.sound.min.js"></script>
@@ -32,7 +41,9 @@
 		var song;
 		var numBars = 1024;
 		var loader;
-
+		var bassBars = 10;
+		var bassMin = .7;
+		var bassMax = 1;
 		// Load our song
 		function init(){
 			loader = document.querySelector(".loader");
@@ -52,7 +63,8 @@
 
 		var canvas;
 		function setup() { // Setup p5.js
-		    canvas = createCanvas(windowWidth, windowHeight);
+		    canvas = createCanvas(1200, 800);
+		    canvas.parent("canvasDiv");
 		}
 
 		function draw() {
@@ -73,22 +85,46 @@
 		    if(typeof fft != "undefined") {
 		        var spectrum = fft.analyze();
 		        noStroke();
-		        fill("rgb(0, 255, 0)");
+		        var totalBass = 0;
 		        for(var i = 0; i < numBars; i++) {
+		        	if(i <= bassBars){
+		        		totalBass += spectrum[i]
+						fill("rgb(255, 0, 0)");
+		        	}
+		        	else{
+		        		fill("rgb(0, 255, 0)");
+		        	}
 		            var x = map(i, 0, numBars, 0, width);
 		            var h = -height + map(spectrum[i], 0, 255, height, 0);
 		            rect(x, height, width / numBars, h);
 		        }
+		        var bassPercent = map(totalBass, 0, 255*bassBars, 0, 1);
+		        var bassEffect = 0;
+		        bassText.innerHTML = ""+bassPercent;
+		        if(bassPercent >= bassMin){
+		        	bassEffect = map(bassPercent, bassMin, bassMax, 0, 255);
+		        	//bassText.style.color = "#FF0000";
+		        	bassText.style.color = "#"+bassEffect.toString(16)+"0000";
+		        }
+		        else{
+		        	bassText.style.color = "#000000";
+		        }
+
 		    }
 		}
 
 		function windowResized() {
-		  resizeCanvas(windowWidth, windowHeight);
+		  //resizeCanvas(windowWidth, windowHeight);
 		}
 	</script>
 </head> 
 <body onload="init()">
+	<center>
+	<div id="canvasDiv">
+	</div>
 	<input id="audiofile" type="file"/>
 	<h3 class="loader">Loading...</h3>
+	<h3 id="bassText"></h3>
+	</center>
 </body> 
 </html>
