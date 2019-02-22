@@ -48,6 +48,9 @@
 		var screenWidth = 1200;
 		var screenHeight = 800;
 		var maxRotate = 10;
+		var maxEdgeDisplacement = 70;
+		var maxEdgeShake = 0;
+
 		// Load our song
 		function init(){
 			loader = document.querySelector(".loader");
@@ -63,13 +66,20 @@
 			        loader.classList.add("loading");
 			    }
 			}
+			window.addEventListener("keydown", function(e) {
+			    // space and arrow keys
+			    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+			        e.preventDefault();
+			    }
+			}, false);
 		}
 
 		var canvas;
 		function setup() { // Setup p5.js
 		    canvas = createCanvas(screenWidth, screenHeight);
 		    canvas.parent("canvasDiv");
-		    rectMode(CENTER);
+		    rect(0, 0, screenWidth, edgeHeight);
+		    rect(0, screenHeight-edgeHeight, screenWidth, edgeHeight);
 		}
 
 		function draw() {
@@ -106,28 +116,47 @@
 		        var bassEffect = 0;
 		        bassText.innerHTML = ""+bassPercent;
 		        noStroke();
-				fill("rgb(0, 0, 255)");
+				fill("rgb(255, 255, 255)");
 		        if(bassPercent >= bassMin){
 		        	bassEffect = map(bassPercent, bassMin, bassMax, 0, 255);
 		        	bassText.style.color = "#"+bassEffect.toString(16)+"0000";
-		        	rotateAmount = map(bassEffect, 0, 255, 0, maxRotate);
-				    var rotateAngle = random(rotateAmount)-maxRotate/2;
-				    translate(screenWidth/2, edgeHeight/2);
-				    rotate(radians(rotateAngle));
-				    rect(0, 0, screenWidth, edgeHeight);
-				    rotate(-radians(rotateAngle));
-				    translate(0, screenHeight-edgeHeight);
-				    rotate(radians(rotateAngle));
-				    rect(0, 0, screenWidth, edgeHeight);
-				    rotate(-radians(rotateAngle));
-				    translate(-screenWidth, -screenHeight+edgeHeight*3/2);
 		        }
 		        else{
-		        	rect(screenWidth/2, edgeHeight/2, screenWidth, edgeHeight);
-				    rect(screenWidth/2, screenHeight-edgeHeight/2, screenWidth, edgeHeight);
-		        	bassText.style.color = "#000000";
+		        	bassText.style.color = "#000000"
 		        }
+		        if(bassPercent >= bassMin){
+		        	var edgeDisplacement = map(bassEffect, 0, 255, 0, maxEdgeDisplacement);
+		        	var edgeShake = random(map(bassEffect, 0, 255, 0, maxEdgeShake));
+		        	rect(0, -maxEdgeDisplacement-maxEdgeShake+edgeDisplacement+edgeShake, screenWidth, edgeHeight+maxEdgeDisplacement+maxEdgeShake);
+		        	rect(0, screenHeight-edgeHeight-edgeDisplacement-edgeShake, screenWidth, edgeHeight+maxEdgeDisplacement+maxEdgeShake);
+		        }
+		        else{
+		        	rect(0, 0, screenWidth, edgeHeight);
+		        	rect(0, screenHeight-edgeHeight, screenWidth, edgeHeight);
+		        }
+		      //   	rotateAmount = map(bassEffect, 0, 255, 0, maxRotate);
+				    // var rotateAngle = random(rotateAmount)-maxRotate/2;
+				    // translate(screenWidth/2, edgeHeight/2);
+				    // rotate(radians(rotateAngle));
+				    // rect(0, 0, screenWidth, edgeHeight);
+				    // rotate(-radians(rotateAngle));
+				    // translate(0, screenHeight-edgeHeight);
+				    // rotate(radians(rotateAngle));
+				    // rect(0, 0, screenWidth, edgeHeight);
+				    // rotate(-radians(rotateAngle));
+				    // translate(-screenWidth, -screenHeight+edgeHeight*3/2);
+		      //   }
+		      //   else{
+		      //   	rect(screenWidth/2, edgeHeight/2, screenWidth, edgeHeight);
+				    // rect(screenWidth/2, screenHeight-edgeHeight/2, screenWidth, edgeHeight);
+		      //   	bassText.style.color = "#000000";
+		      //   }
 
+		    }
+		    else{
+		    	noStroke();
+		    	rect(0, 0, screenWidth, edgeHeight);
+		        rect(0, screenHeight-edgeHeight, screenWidth, edgeHeight);
 		    }
 		}
 
