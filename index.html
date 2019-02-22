@@ -44,6 +44,10 @@
 		var bassBars = 10;
 		var bassMin = .7;
 		var bassMax = 1;
+		var edgeHeight = 50;
+		var screenWidth = 1200;
+		var screenHeight = 800;
+		var maxRotate = 10;
 		// Load our song
 		function init(){
 			loader = document.querySelector(".loader");
@@ -63,8 +67,9 @@
 
 		var canvas;
 		function setup() { // Setup p5.js
-		    canvas = createCanvas(1200, 800);
+		    canvas = createCanvas(screenWidth, screenHeight);
 		    canvas.parent("canvasDiv");
+		    rectMode(CENTER);
 		}
 
 		function draw() {
@@ -84,7 +89,6 @@
 		    
 		    if(typeof fft != "undefined") {
 		        var spectrum = fft.analyze();
-		        noStroke();
 		        var totalBass = 0;
 		        for(var i = 0; i < numBars; i++) {
 		        	if(i <= bassBars){
@@ -101,12 +105,26 @@
 		        var bassPercent = map(totalBass, 0, 255*bassBars, 0, 1);
 		        var bassEffect = 0;
 		        bassText.innerHTML = ""+bassPercent;
+		        noStroke();
+				fill("rgb(0, 0, 255)");
 		        if(bassPercent >= bassMin){
 		        	bassEffect = map(bassPercent, bassMin, bassMax, 0, 255);
-		        	//bassText.style.color = "#FF0000";
 		        	bassText.style.color = "#"+bassEffect.toString(16)+"0000";
+		        	rotateAmount = map(bassEffect, 0, 255, 0, maxRotate);
+				    var rotateAngle = random(rotateAmount)-maxRotate/2;
+				    translate(screenWidth/2, edgeHeight/2);
+				    rotate(radians(rotateAngle));
+				    rect(0, 0, screenWidth, edgeHeight);
+				    rotate(-radians(rotateAngle));
+				    translate(0, screenHeight-edgeHeight);
+				    rotate(radians(rotateAngle));
+				    rect(0, 0, screenWidth, edgeHeight);
+				    rotate(-radians(rotateAngle));
+				    translate(-screenWidth, -screenHeight+edgeHeight*3/2);
 		        }
 		        else{
+		        	rect(screenWidth/2, edgeHeight/2, screenWidth, edgeHeight);
+				    rect(screenWidth/2, screenHeight-edgeHeight/2, screenWidth, edgeHeight);
 		        	bassText.style.color = "#000000";
 		        }
 
