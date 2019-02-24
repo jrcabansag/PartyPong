@@ -15,15 +15,16 @@ const kSoundVolume = 0.5;
 
 const kBallDiameter = 25;
 const kBallSpeed = 5;
-const kMaxBallSpeedBonus = 15;
+const kMaxBallSpeedBonus = 17;
 
-const kPlayerHeight = 140;
+const kPlayerHeight = 150;
 const kPlayerWidth = 12;
 const kPlayerX = 75;
 const kPlayerSpeed = 7;
 const kMaxPlayerSpeedBonus = 5;
-const kMaxPlayerYVibration = 7;
-const kMaxPlayerXVibration = 3;
+const kMaxPlayerYVibration = 12;
+const kMaxPlayerXVibration = 5;
+const kMaxPlayerYShrink = 70;
 
 const kScreenWidth = 1200;
 const kScreenHeight = 800;
@@ -51,6 +52,7 @@ var player1Direction = 0;
 var player1Y;
 var player2Y = (kScreenHeight-kPlayerHeight)/2;
 var player2Direction = 0;
+var playerHeight = kPlayerHeight;
 
 var player1Key = "None"
 var player2Key = "None"
@@ -193,9 +195,13 @@ function updateEdges(){
 }
 
 function updatePlayers(){
+	var newPlayerHeight = kPlayerHeight-kMaxPlayerYShrink*bassEffect;
+	var playerYShift = (playerHeight-newPlayerHeight)/2
+	playerHeight = newPlayerHeight;
+
 	var playerSpeed = kPlayerSpeed+kMaxPlayerSpeedBonus*bassEffect;
-	player1Y += player1Direction*playerSpeed;
-	player2Y += player2Direction*playerSpeed;
+	player1Y += player1Direction*playerSpeed+playerYShift;
+	player2Y += player2Direction*playerSpeed+playerYShift;
 
 	var minPlayerBound = kEdgeHeight;
 	var maxPlayerBound = kScreenHeight-kEdgeHeight-kPlayerHeight;
@@ -214,12 +220,24 @@ function updatePlayers(){
 
     noStroke();
     fill("rgb(255, 255, 255)");
-    rect(player1X+player1XVibration, player1Y+player1YVibration, kPlayerWidth, kPlayerHeight);
-    rect(player2X+player2XVibration, player2Y+player1YVibration, kPlayerWidth, kPlayerHeight);
+    rect(player1X+player1XVibration, player1Y+player1YVibration, kPlayerWidth, playerHeight);
+    rect(player2X+player2XVibration, player2Y+player1YVibration, kPlayerWidth, playerHeight);
 }
 
 function updateBall(){
-	var edgeShift = edgeDisplacement+edgeVibration
+	updateBallWallCollision();
+	updateBallPlayerCollision();
+
+	ballX += (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballXDirection;
+	ballY += (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballYDirection;
+
+	noStroke();
+    fill("rgb(255, 255, 255)");
+	ellipse(ballX, ballY, kBallDiameter, kBallDiameter);
+}
+
+function updateBallWallCollision(){
+	var edgeShift = edgeDisplacement+edgeVibration;
 
 	//check collisions with wall
 	if(ballX < 0){
@@ -234,7 +252,9 @@ function updateBall(){
 	} else if(ballY >= kScreenHeight-kBallDiameter-edgeShift-kEdgeHeight){
 		ballYDirection = -1;
 	}
+}
 
+function updateBallPlayerCollision(){
 	ballHorizontalShift = (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballXDirection;
 	ballVerticalShift = (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballYDirection;
 
@@ -264,7 +284,7 @@ function updateBall(){
 		if(ballYDirection == 1){
 			ballY = player1Y-kBallDiameter;
 		} else{
-			ballY = player1Y+kPlayerHeight;
+			ballY = player1Y+playerHeight;
 		}
 		ballYDirection = -ballYDirection;
 	}
@@ -272,22 +292,15 @@ function updateBall(){
 		if(ballYDirection == 1){
 			ballY = player2Y-kBallDiameter;
 		} else{
-			ballY = player2Y+kPlayerHeight;
+			ballY = player2Y+playerHeight;
 		}
 		ballYDirection = -ballYDirection;
 	}
-
-	ballX += (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballXDirection;
-	ballY += (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballYDirection;
-
-	noStroke();
-    fill("rgb(255, 255, 255)");
-	ellipse(ballX, ballY, kBallDiameter, kBallDiameter);
 }
 
 function isBallWithShiftsInside(horizontalShift, verticalShift, playerX, playerY){
 	var isHorizontallyInside = ballX+horizontalShift+kBallDiameter > playerX && ballX+horizontalShift < playerX+kPlayerWidth;
-	var isVerticallyInside = ballY+verticalShift+kBallDiameter > playerY && ballY+verticalShift < playerY+kPlayerHeight;
+	var isVerticallyInside = ballY+verticalShift+kBallDiameter > playerY && ballY+verticalShift < playerY+playerHeight;
 	var isInside = isHorizontallyInside && isVerticallyInside;
 	return isInside;
 }
