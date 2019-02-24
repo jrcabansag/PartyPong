@@ -17,25 +17,42 @@ const kBallDiameter = 25;
 const kBallSpeed = 5;
 const kMaxBallSpeedBonus = 17;
 
-const kPlayerHeight = 150;
-const kPlayerWidth = 12;
+const kPlayerHeight = 140;
+const kPlayerWidth = 13;
 const kPlayerX = 75;
 const kPlayerSpeed = 7;
 const kMaxPlayerSpeedBonus = 5;
-const kMaxPlayerYVibration = 12;
-const kMaxPlayerXVibration = 5;
-const kMaxPlayerYShrink = 70;
+//const kMaxPlayerYVibration = 12;
+//const kMaxPlayerXVibration = 5;
+//const kMaxPlayerYShrink = 20;
 
 const kScreenWidth = 1200;
 const kScreenHeight = 800;
 const kEdgeHeight = 50;
 const kEdgeBonus = 50;
 const kMaxEdgeDisplacement = 100; //how much the edges of the stage will be displaced at max bass effect
+//const kMaxEdgeVibration = 15;
+
+const kBackgroundGradientMax = 10000;
+const kBackgroundGradientDifference = 1300;
+const kBackgroundGradientSpeed = 3;
+const kMaxBackgroundGradientSpeedBoost = 100;
+
+const kBlackValue = 30;
+var kFill = "rgb("+kBlackValue+","+kBlackValue+","+kBlackValue+")";
+
+// const kMaxEdgeVibration = 15;
+// const kMaxPlayerYVibration = 12;
+// const kMaxPlayerXVibration = 5;
+//const kMaxPlayerYShrink = 20;
+// const kMaxEdgeVibration = 0;
+// const kMaxPlayerYVibration = 0;
+// const kMaxPlayerXVibration = 0;
+//const kMaxPlayerYShrink = 20;
 const kMaxEdgeVibration = 15;
-
-
-
-
+const kMaxPlayerYVibration = 12;
+const kMaxPlayerXVibration = 5;
+const kMaxPlayerYShrink = 20;
 
 /** GLOBAL VARIABLES **/
 
@@ -68,6 +85,8 @@ var edgeVibration = 0;
 var playerShrink = 0;
 var playerYVibration = 0;
 
+var backgroundGradientValue1 = 6000;
+var backgroundGradientValue2 = backgroundGradientValue1+kBackgroundGradientDifference;
 
 
 /** FUNCTIONS **/
@@ -75,6 +94,7 @@ var playerYVibration = 0;
 function init(){
 	initSongLoader();
 	initKeyListeners();
+	document.body.style.background = kFill;
 }
 
 function initSongLoader(){
@@ -144,8 +164,8 @@ function draw() {
 
 	calculateBassEffect();
 	updateBackground();
+	updatePlayers();
 	updateEdges();
-    updatePlayers();
     updateBall();
     
 }
@@ -181,15 +201,43 @@ function calculateBassEffect(){
 }
 
 function updateBackground(){
-	background(51);
+	backgroundGradientValue1 = (backgroundGradientValue1+kBackgroundGradientSpeed+kMaxBackgroundGradientSpeedBoost*bassEffect)%kBackgroundGradientMax;
+	backgroundGradientValue2 = (backgroundGradientValue2+kBackgroundGradientSpeed+kMaxBackgroundGradientSpeedBoost*bassEffect)%kBackgroundGradientMax;
+	var saturationValue = 15*bassEffect+75;
+
+	noFill();
+	colorMode(HSB, kBackgroundGradientMax, 100, 100);
+	for (let i = 0; i <= 0 + kScreenHeight; i++) {
+	    var colorValue = map(i, 0, 0 + kScreenHeight, 0, kBackgroundGradientDifference);
+	    var currentColorValue = backgroundGradientValue1-colorValue;
+	    if(currentColorValue < 0){
+	    	currentColorValue = kBackgroundGradientMax+currentColorValue
+	    }
+	    stroke(color(currentColorValue, saturationValue, 80));
+	    line(0, i, 0 + kScreenWidth, i);
+	}
+	//c1 = color(backgroundGradientValue1, 50, 90);
+  	// c2 = color(backgroundGradientValue2, 50, 90);
+  	// updateBackgroundGradient(0, 0, kScreenWidth, kScreenHeight, c1, c2);
+	//background(backgroundGradientValue1, 50, 90);
 }
+
+function updateBackgroundGradient(x, y, w, h, c1, c2) {
+	noFill();
+	for (let i = y; i <= y + h; i++) {
+	    let inter = map(i, y, y + h, 0, 1);
+	    let c = lerpColor(c1, c2, inter);
+	    stroke(c);
+	    line(x, i, x + w, i);
+	}
+ }
 
 function updateEdges(){
 	edgeDisplacement = map(bassEffect, 0, 1, 0, kMaxEdgeDisplacement);
     edgeShake = random(map(bassEffect, 0, 1, 0, kMaxEdgeVibration));
 
     noStroke();
-    fill("rgb(255, 255, 255)");
+    fill(kFill);
     rect(0, -kMaxEdgeDisplacement-kMaxEdgeVibration+edgeDisplacement+edgeShake-kEdgeBonus, kScreenWidth, kEdgeHeight+kMaxEdgeDisplacement+kMaxEdgeVibration+kEdgeBonus);
     rect(0, kScreenHeight-kEdgeHeight-edgeDisplacement-edgeShake, kScreenWidth, kEdgeHeight+kMaxEdgeDisplacement+kMaxEdgeVibration+kEdgeBonus);
 }
@@ -219,7 +267,10 @@ function updatePlayers(){
     var player2YVibration = (random(kMaxPlayerYVibration)-kMaxPlayerYVibration/2)*bassEffect;
 
     noStroke();
-    fill("rgb(255, 255, 255)");
+    const kBlackValue = 255;
+	var kBallFill = "rgb("+kBlackValue+","+kBlackValue+","+kBlackValue+")";
+    fill(kBallFill);
+    //fill(kFill);
     rect(player1X+player1XVibration, player1Y+player1YVibration, kPlayerWidth, playerHeight);
     rect(player2X+player2XVibration, player2Y+player1YVibration, kPlayerWidth, playerHeight);
 }
@@ -232,7 +283,9 @@ function updateBall(){
 	ballY += (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballYDirection;
 
 	noStroke();
-    fill("rgb(255, 255, 255)");
+	const kBlackValue = 255;
+	var kBallFill = "rgb("+kBlackValue+","+kBlackValue+","+kBlackValue+")";
+    fill(kBallFill);
 	ellipse(ballX, ballY, kBallDiameter, kBallDiameter);
 }
 
