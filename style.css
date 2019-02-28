@@ -10,6 +10,7 @@ input {
 }
 #instructions{
     color:white;
+    font-family:Lato;
 }
 .loader {
     font-family: sans-serif;

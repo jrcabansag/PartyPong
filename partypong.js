@@ -37,6 +37,7 @@ const kBackgroundGradientMax = 10000;
 const kBackgroundGradientTopBottomDifference = 1300;
 const kBackgroundGradientSpeed = 3;
 const kMaxBackgroundGradientSpeedBoost = 140;
+const kBackgroundGradientStepSize = 10;
 
 const kBackgroundColorFill = "rgb(30, 30, 30)";
 const kWhiteColorFill = "rgb(255, 255, 255)";
@@ -103,7 +104,7 @@ function initSongLoader(){
 	        }
 	        // Load our new song
 	        song = loadSound(URL.createObjectURL(event.target.files[0]));
-	        if(autoPausedGame){
+	        if(isGamePaused && autoPausedGame){
 	        	unpauseGame();
 	        	autoPausedGame = false;
 	        }
@@ -196,6 +197,7 @@ function unpauseGame() {
 }
 
 function setup() {
+	p5.disableFriendlyErrors = true;
     canvas = createCanvas(kScreenWidth, kScreenHeight);
     canvas.parent("canvasDiv");
     rect(0, 0, kScreenWidth, kEdgeHeight);
@@ -254,26 +256,25 @@ function updateBackground(){
 	noFill();
 
 	colorMode(HSB, kBackgroundGradientMax, 100, 100);
-	for (let i = 0; i <= 0 + kScreenHeight; i++) {
+	// for (let i = 0; i <= 0 + kScreenHeight; i++) {
+	//     var colorValue = map(i, 0, 0 + kScreenHeight, 0, kBackgroundGradientTopBottomDifference);
+	//     var currentColorValue = backgroundGradientTopValue-colorValue;
+	//     if(currentColorValue < 0){
+	//     	currentColorValue = kBackgroundGradientMax+currentColorValue
+	//     }
+	//     stroke(color(currentColorValue, saturationValue, 80));
+	//     line(0, i, 0 + kScreenWidth, i);
+	// }
+	for (let i = 0; i <= 0 + kScreenHeight; i+= kBackgroundGradientStepSize) {
 	    var colorValue = map(i, 0, 0 + kScreenHeight, 0, kBackgroundGradientTopBottomDifference);
 	    var currentColorValue = backgroundGradientTopValue-colorValue;
 	    if(currentColorValue < 0){
 	    	currentColorValue = kBackgroundGradientMax+currentColorValue
 	    }
-	    stroke(color(currentColorValue, saturationValue, 80));
-	    line(0, i, 0 + kScreenWidth, i);
+	    fill(color(currentColorValue, saturationValue, 80));
+	    rect(0, i, kScreenWidth, kBackgroundGradientStepSize);
 	}
 }
-
-function updateBackgroundGradient(x, y, w, h, c1, c2) {
-	noFill();
-	for (let i = y; i <= y + h; i++) {
-	    let inter = map(i, y, y + h, 0, 1);
-	    let c = lerpColor(c1, c2, inter);
-	    stroke(c);
-	    line(x, i, x + w, i);
-	}
- }
 
 function updateEdges(){
 	edgeDisplacement = map(bassEffect, 0, 1, 0, kMaxEdgeDisplacement);
