@@ -22,45 +22,36 @@ const kPlayerWidth = 13;
 const kPlayerX = 75;
 const kPlayerSpeed = 7;
 const kMaxPlayerSpeedBonus = 5;
-//const kMaxPlayerYVibration = 12;
-//const kMaxPlayerXVibration = 5;
-//const kMaxPlayerYShrink = 20;
+const kMaxPlayerYVibration = 12;
+const kMaxPlayerXVibration = 5;
+const kMaxPlayerYShrink = 20;
 
 const kScreenWidth = 1200;
 const kScreenHeight = 800;
 const kEdgeHeight = 50;
 const kEdgeBonus = 50;
-const kMaxEdgeDisplacement = 100; //how much the edges of the stage will be displaced at max bass effect
-//const kMaxEdgeVibration = 15;
+const kMaxEdgeDisplacement = 110; //how much the edges of the stage will be displaced at max bass effect
+const kMaxEdgeVibration = 15;
 
 const kBackgroundGradientMax = 10000;
-const kBackgroundGradientDifference = 1300;
+const kBackgroundGradientTopBottomDifference = 1300;
 const kBackgroundGradientSpeed = 3;
-const kMaxBackgroundGradientSpeedBoost = 100;
+const kMaxBackgroundGradientSpeedBoost = 140;
 
-const kBlackValue = 30;
-var kFill = "rgb("+kBlackValue+","+kBlackValue+","+kBlackValue+")";
+const kBackgroundColorFill = "rgb(30, 30, 30)";
+const kWhiteColorFill = "rgb(255, 255, 255)";
+const kFont = 'Work Sans';
+const kFontSize = 45;
 
-// const kMaxEdgeVibration = 15;
-// const kMaxPlayerYVibration = 12;
-// const kMaxPlayerXVibration = 5;
-//const kMaxPlayerYShrink = 20;
-// const kMaxEdgeVibration = 0;
-// const kMaxPlayerYVibration = 0;
-// const kMaxPlayerXVibration = 0;
-//const kMaxPlayerYShrink = 20;
-const kMaxEdgeVibration = 15;
-const kMaxPlayerYVibration = 12;
-const kMaxPlayerXVibration = 5;
-const kMaxPlayerYShrink = 20;
+
+
+
 
 /** GLOBAL VARIABLES **/
 
 var canvas;
 var fft;
 var song;
-var loader;
-
 var soundVolume = 0.5;
 
 var player1X;
@@ -70,6 +61,8 @@ var player1Y;
 var player2Y = (kScreenHeight-kPlayerHeight)/2;
 var player2Direction = 0;
 var playerHeight = kPlayerHeight;
+var player1Score = 0;
+var player2Score = 0;
 
 var player1Key = "None"
 var player2Key = "None"
@@ -85,8 +78,12 @@ var edgeVibration = 0;
 var playerShrink = 0;
 var playerYVibration = 0;
 
-var backgroundGradientValue1 = 6000;
-var backgroundGradientValue2 = backgroundGradientValue1+kBackgroundGradientDifference;
+var backgroundGradientTopValue = 6000;
+var isGamePaused = false;
+var autoPausedGame = false;
+var areInstructionsHidden = false;
+
+
 
 
 /** FUNCTIONS **/
@@ -94,11 +91,10 @@ var backgroundGradientValue2 = backgroundGradientValue1+kBackgroundGradientDiffe
 function init(){
 	initSongLoader();
 	initKeyListeners();
-	document.body.style.background = kFill;
+	document.body.style.background = kBackgroundColorFill;
 }
 
 function initSongLoader(){
-	loader = document.querySelector(".loader");
 	document.getElementById("audiofile").onchange = function(event) {
 	    if(event.target.files[0]) {
 	        if(typeof song != "undefined") { // Catch already playing songs
@@ -107,7 +103,13 @@ function initSongLoader(){
 	        }
 	        // Load our new song
 	        song = loadSound(URL.createObjectURL(event.target.files[0]));
-	        loader.classList.add("loading");
+	        if(autoPausedGame){
+	        	unpauseGame();
+	        	autoPausedGame = false;
+	        }
+	        else if(isGamePaused){
+	        	song.pause();
+	        }
 	    }
 	}
 }
@@ -136,6 +138,19 @@ function initKeyListeners(){
 	    if([32, 37, 38, 39, 40, 83, 87].indexOf(e.keyCode) > -1) {
 	        e.preventDefault();
 	    }
+	    if(e.keyCode == 32){ //spacebar
+	    	if(isGamePaused){
+	    		unpauseGame();
+	    	} else{
+	    		pauseGame();
+	    	}
+	    }
+	    if(e.keyCode == 82){ //r
+	    	resetScores();
+	    }
+	    if(e.keyCode == 77){
+	    	clickMusic();
+	    }
 	    if(e.keyCode == 87 && player1Direction == -1){
 	    	player1Direction = 0;
 	    }
@@ -151,28 +166,60 @@ function initKeyListeners(){
 	}, false);
 }
 
+function clickMusic() {
+	if(!isGamePaused){
+	   pauseGame();
+	   autoPausedGame = true;
+	}
+	document.getElementById("audiofile").click();
+}
+
+function resetScores() {
+	player1Score = 0;
+	player2Score = 0;
+}
+
+function pauseGame() {
+	isGamePaused = true;
+	if(typeof song != "undefined" && song.isLoaded()) {
+		song.pause();
+	}
+}
+
+function unpauseGame() {
+	autoPausedGame = false;
+	isGamePaused = false;
+	if(typeof song != "undefined" && song.isLoaded()) {
+		song.play();
+		song.setVolume(soundVolume);
+	}
+}
+
 function setup() {
     canvas = createCanvas(kScreenWidth, kScreenHeight);
     canvas.parent("canvasDiv");
     rect(0, 0, kScreenWidth, kEdgeHeight);
     rect(0, kScreenHeight-kEdgeHeight, kScreenWidth, kEdgeHeight);
     ellipseMode(CORNER);
+    textFont(kFont);
+  	textSize(kFontSize);
 }
 
 function draw() {
-	playSongIfNotPlaying();
-
-	calculateBassEffect();
-	updateBackground();
-	updatePlayers();
-	updateEdges();
-    updateBall();
-    
+	if(!isGamePaused){
+		playSongIfNotPlaying();
+		calculateBassEffect();
+		updateBackground();
+		updatePlayers();
+		updateEdges();
+	    updateBall();
+	} else {
+		drawPaused();
+	}
 }
 
 function playSongIfNotPlaying(){
 	if(typeof song != "undefined" && song.isLoaded() && !song.isPlaying()) {
-        loader.classList.remove("loading");
         song.play();
         song.setVolume(soundVolume);
         fft = new p5.FFT();
@@ -201,25 +248,21 @@ function calculateBassEffect(){
 }
 
 function updateBackground(){
-	backgroundGradientValue1 = (backgroundGradientValue1+kBackgroundGradientSpeed+kMaxBackgroundGradientSpeedBoost*bassEffect)%kBackgroundGradientMax;
-	backgroundGradientValue2 = (backgroundGradientValue2+kBackgroundGradientSpeed+kMaxBackgroundGradientSpeedBoost*bassEffect)%kBackgroundGradientMax;
+	backgroundGradientTopValue = (backgroundGradientTopValue+kBackgroundGradientSpeed+kMaxBackgroundGradientSpeedBoost*bassEffect)%kBackgroundGradientMax;
 	var saturationValue = 15*bassEffect+75;
 
 	noFill();
+
 	colorMode(HSB, kBackgroundGradientMax, 100, 100);
 	for (let i = 0; i <= 0 + kScreenHeight; i++) {
-	    var colorValue = map(i, 0, 0 + kScreenHeight, 0, kBackgroundGradientDifference);
-	    var currentColorValue = backgroundGradientValue1-colorValue;
+	    var colorValue = map(i, 0, 0 + kScreenHeight, 0, kBackgroundGradientTopBottomDifference);
+	    var currentColorValue = backgroundGradientTopValue-colorValue;
 	    if(currentColorValue < 0){
 	    	currentColorValue = kBackgroundGradientMax+currentColorValue
 	    }
 	    stroke(color(currentColorValue, saturationValue, 80));
 	    line(0, i, 0 + kScreenWidth, i);
 	}
-	//c1 = color(backgroundGradientValue1, 50, 90);
-  	// c2 = color(backgroundGradientValue2, 50, 90);
-  	// updateBackgroundGradient(0, 0, kScreenWidth, kScreenHeight, c1, c2);
-	//background(backgroundGradientValue1, 50, 90);
 }
 
 function updateBackgroundGradient(x, y, w, h, c1, c2) {
@@ -237,9 +280,13 @@ function updateEdges(){
     edgeShake = random(map(bassEffect, 0, 1, 0, kMaxEdgeVibration));
 
     noStroke();
-    fill(kFill);
+    fill(kBackgroundColorFill);
     rect(0, -kMaxEdgeDisplacement-kMaxEdgeVibration+edgeDisplacement+edgeShake-kEdgeBonus, kScreenWidth, kEdgeHeight+kMaxEdgeDisplacement+kMaxEdgeVibration+kEdgeBonus);
     rect(0, kScreenHeight-kEdgeHeight-edgeDisplacement-edgeShake, kScreenWidth, kEdgeHeight+kMaxEdgeDisplacement+kMaxEdgeVibration+kEdgeBonus);
+
+    fill(kWhiteColorFill);
+    textAlign(CENTER);
+    text(player1Score+'   '+player2Score, kScreenWidth/2, kEdgeHeight+edgeDisplacement+edgeShake+50);
 }
 
 function updatePlayers(){
@@ -267,12 +314,9 @@ function updatePlayers(){
     var player2YVibration = (random(kMaxPlayerYVibration)-kMaxPlayerYVibration/2)*bassEffect;
 
     noStroke();
-    const kBlackValue = 255;
-	var kBallFill = "rgb("+kBlackValue+","+kBlackValue+","+kBlackValue+")";
-    fill(kBallFill);
-    //fill(kFill);
+    fill(kWhiteColorFill);
     rect(player1X+player1XVibration, player1Y+player1YVibration, kPlayerWidth, playerHeight);
-    rect(player2X+player2XVibration, player2Y+player1YVibration, kPlayerWidth, playerHeight);
+    rect(player2X+player2XVibration, player2Y+player2YVibration, kPlayerWidth, playerHeight);
 }
 
 function updateBall(){
@@ -283,9 +327,7 @@ function updateBall(){
 	ballY += (kBallSpeed+kMaxBallSpeedBonus*bassEffect)*ballYDirection;
 
 	noStroke();
-	const kBlackValue = 255;
-	var kBallFill = "rgb("+kBlackValue+","+kBlackValue+","+kBlackValue+")";
-    fill(kBallFill);
+    fill(kWhiteColorFill);
 	ellipse(ballX, ballY, kBallDiameter, kBallDiameter);
 }
 
@@ -296,9 +338,11 @@ function updateBallWallCollision(){
 	if(ballX < 0){
 		ballX = 0;
 		ballXDirection = 1;
+		player2Score += 1;
 	} else if(ballX > kScreenWidth-kBallDiameter){
 		ballX = kScreenWidth-kBallDiameter;
 		ballXDirection = -1;
+		player1Score += 1;
 	}
 	if(ballY <= 0+edgeShift+kEdgeHeight){
 		ballYDirection = 1;
@@ -351,11 +395,28 @@ function updateBallPlayerCollision(){
 	}
 }
 
+function drawPaused(){
+	fill(kBackgroundColorFill);
+    textAlign(CENTER);
+    text("PAUSED", kScreenWidth/2, kScreenHeight/2);
+}
+
 function isBallWithShiftsInside(horizontalShift, verticalShift, playerX, playerY){
 	var isHorizontallyInside = ballX+horizontalShift+kBallDiameter > playerX && ballX+horizontalShift < playerX+kPlayerWidth;
 	var isVerticallyInside = ballY+verticalShift+kBallDiameter > playerY && ballY+verticalShift < playerY+playerHeight;
 	var isInside = isHorizontallyInside && isVerticallyInside;
 	return isInside;
+}
+
+function toggleInstructions(){
+	if(!areInstructionsHidden){
+
+		areInstructionsHidden = true;
+		document.getElementById("instructions").style.color = "#1e1e1e";
+	} else {
+		areInstructionsHidden = false;
+		document.getElementById("instructions").style.color = "white";
+	}
 }
 
 function windowResized() {

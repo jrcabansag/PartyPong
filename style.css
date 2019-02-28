@@ -1,10 +1,15 @@
 body { 
 	margin:0;
+    font-family:Lato;
 }
 input {
     position: absolute;
     top: 15px;
     left: 15px;
+    visibility: hidden;
+}
+#instructions{
+    color:white;
 }
 .loader {
     font-family: sans-serif;
@@ -21,6 +26,7 @@ input {
 	position: absolute;
     top: 115px;
     left: 15px;
+    visibility: hidden;
 }
 #canvasDiv{
 	width: 1200px;

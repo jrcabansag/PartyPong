@@ -3,6 +3,8 @@
 <head> 
 	<title>Party Pong</title> 
 	<link rel="stylesheet" href="style.css">
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans:700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Staatliches" rel="stylesheet">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.5/p5.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.5/addons/p5.sound.min.js"></script>
 	<script src="partypong.js"></script>
@@ -12,8 +14,16 @@
 	<div id="canvasDiv">
 	</div>
 	<input id="audiofile" type="file"/>
-	<h3 class="loader">Loading...</h3>
 	<h3 id="bassText">0</h3>
+	<div id="instructions" onClick="toggleInstructions()">
+	<b>Instructions</b><br><br>
+	<b>W, S</b> - Move player 1 up and down<br>
+	<b>Up, Down</b> - Move player 2 up and down<br>
+	<b>M</b> - Upload music<br>
+	<b>R</b> - Reset scores<br>
+	<b>Spacebar</b> - Pause/Unpause<br><br>
+	<i>Click to hide these instructions!</i>
+	</div>
 	</center>
 </body> 
 </html>
